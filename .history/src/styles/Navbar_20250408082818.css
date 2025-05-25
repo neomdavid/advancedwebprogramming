@@ -1,0 +1,14 @@
+nav {
+  background-color: #1c1c1c;
+  display: flex;
+  justify-content: space-between;
+  color: #ffffff;
+  padding: 22px 10px;
+}
+ul {
+  display: flex;
+}
+.left-section {
+  display: flex;
+  gap: 6px;
+}

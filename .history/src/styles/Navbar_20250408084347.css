@@ -1,0 +1,26 @@
+nav {
+  background-color: #1c1c1c;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ffffff;
+  padding: 22px 10px;
+}
+ul {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.left-section {
+  display: flex;
+  gap: 26px;
+}
+
+.logo h1 {
+  font-weight: 900;
+  font-size: x-large;
+}
+.logo span {
+  font-weight: 900;
+  font-size: x-large;
+}

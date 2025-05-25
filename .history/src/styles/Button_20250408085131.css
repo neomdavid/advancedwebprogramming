@@ -1,0 +1,16 @@
+.custom-button {
+  padding: 10px 20px;
+  background-color: transparent;
+  border: solid 2px #585858;
+  border-radius: 4px;
+  color: #585858;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: small;
+  transition: all 0.3s ease;
+}
+.custom-button:hover {
+  cursor: pointer;
+  border: solid 2px rgba(255, 255, 255, 0.811);
+  color: rgba(255, 255, 255, 0.811);
+}

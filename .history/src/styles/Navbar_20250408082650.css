@@ -1,0 +1,9 @@
+nav {
+  background-color: #1c1c1c;
+  display: flex;
+  justify-content: space-between;
+  color: #ffffff;
+}
+ul {
+  display: flex;
+}

@@ -1,0 +1,10 @@
+main {
+  display: flex;
+  justify-content: center;
+  padding: 18px 10px;
+}
+
+section {
+  display: grid;
+  grid-template-columns: 2;
+}

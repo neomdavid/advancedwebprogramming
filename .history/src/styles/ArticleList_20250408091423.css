@@ -1,0 +1,16 @@
+main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 18px 27px;
+}
+
+section {
+  display: grid;
+  grid-template-columns: 2;
+  gap: 4px;
+}
+section a {
+  padding: 20px;
+  border: solid 1px #585858;
+}
