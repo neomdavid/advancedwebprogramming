@@ -1,45 +1,92 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/LoginPage.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { loginUser } from "../api/userApi";
+import { toast } from 'react-toastify';
+import { useAuth } from '../contexts/AuthContext';
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+
+  useEffect(() => {
+    if (location.state?.showToast) {
+      toast.success(location.state.message || `Welcome back, ${location.state.firstName}!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
+  }, [location]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    console.log("Login attempt started");
 
     try {
+      console.log("Calling loginUser API with:", { email, password });
       const { data } = await loginUser({ email, password });
-      // Store the token and user info in localStorage
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify({
+      console.log("Login API response:", data);
+
+      // Use the login function from AuthContext
+      login({
         firstName: data.firstName,
         type: data.type,
         email: email
-      }));
-      // Redirect based on user type
+      }, data.token);
+
+      // Navigate based on user type
       switch (data.type) {
         case "admin":
-          navigate("/admin");
-          break;
         case "editor":
-          navigate("/admin");
+          console.log("Redirecting to admin dashboard");
+          navigate("/admin", { 
+            state: { 
+              showToast: true,
+              firstName: data.firstName,
+              message: `Welcome back, ${data.firstName}! You are logged in as ${data.type}.`
+            }
+          });
           break;
         case "viewer":
-          navigate("/", { state: { name: data.firstName } });
+          console.log("Redirecting to home page");
+          navigate("/", { 
+            state: { 
+              showToast: true,
+              firstName: data.firstName,
+              message: `Welcome back, ${data.firstName}!`
+            }
+          });
           break;
         default:
-          navigate("/welcome", { state: { name: data.firstName } });
+          console.log("Redirecting to welcome page");
+          navigate("/welcome", { 
+            state: { 
+              showToast: true,
+              firstName: data.firstName,
+              message: `Welcome back, ${data.firstName}!`
+            }
+          });
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message || err.message || "Login failed"
-      );
+      console.error("Login error:", err);
+      console.log("Attempting to show error toast");
+      toast.error(err.response?.data?.message || err.message || "Login failed", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      console.log("Error toast should be shown");
     }
   };
 
@@ -63,6 +110,7 @@ const LoginPage = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="input"
+            autoComplete="email"
           />
           <input
             type="password"
@@ -71,6 +119,7 @@ const LoginPage = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="input"
+            autoComplete="current-password"
           />
           <button type="submit" className="login-button">
             Login

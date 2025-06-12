@@ -1,10 +1,27 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { toast } from 'react-toastify';
 import "../styles/HomePage.css";
 import Button from "../components/Button";
 import product1 from "../assets/product1.jpg";
 import product2 from "../assets/product2.jpg";
 
 const HomePage = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.showToast) {
+      toast.success(`Welcome back, ${location.state.firstName}!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
+  }, [location]);
+
   return (
     <div className="home-container">
       <h1>Welcome to Our Clothing Store</h1>

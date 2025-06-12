@@ -4,6 +4,7 @@
   padding: 0px 70px;
   display: flex;
   flex-direction: column;
+  padding-top: 100px;
 }
 
 .subheading {

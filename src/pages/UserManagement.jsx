@@ -3,8 +3,13 @@ import '../styles/UserManagement.css';
 import { fetchUsers, createUser, updateUser, deleteUser } from '../api/userApi';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import UnauthorizedAccess from '../components/UnauthorizedAccess';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const UserManagement = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -23,10 +28,26 @@ const UserManagement = () => {
     type: 'viewer',
     isActive: true
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   useEffect(() => {
-    loadUsers();
-  }, []);
+    const checkAuthAndLoadUsers = async () => {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+
+      if (user.type !== 'admin') {
+        navigate('/admin');
+        return;
+      }
+
+      await loadUsers();
+    };
+
+    checkAuthAndLoadUsers();
+  }, [user, navigate]);
 
   const loadUsers = async () => {
     setLoading(true);
@@ -88,17 +109,25 @@ const UserManagement = () => {
     }
   };
 
-  const handleDeleteUser = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
     try {
-      await deleteUser(userId);
+      await deleteUser(userToDelete._id);
+      setShowDeleteModal(false);
+      setUserToDelete(null);
       loadUsers();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete user');
     }
   };
 
-  if (loading) return <div className="loading">Loading...</div>;
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
+
+  if (!user || user.type !== 'admin') {
+    return <UnauthorizedAccess />;
+  }
 
   return (
     <div className="user-management">
@@ -150,7 +179,6 @@ const UserManagement = () => {
                           lastName: user.lastName,
                           username: user.username,
                           email: user.email,
-                          password: '',
                           address: user.address,
                           contactNumber: user.contactNumber,
                           gender: user.gender,
@@ -164,7 +192,10 @@ const UserManagement = () => {
                     </button>
                     <button
                       className="delete-btn"
-                      onClick={() => handleDeleteUser(user._id)}
+                      onClick={() => {
+                        setUserToDelete(user);
+                        setShowDeleteModal(true);
+                      }}
                     >
                       <DeleteIcon />
                     </button>
@@ -179,9 +210,9 @@ const UserManagement = () => {
       {/* Add/Edit User Modal */}
       {(showAddModal || editingUser) && (
         <div className="modal-overlay">
-          <div className="modal-content two-column-modal">
+          <div className="modal-content">
             <h2>{editingUser ? 'Edit User' : 'Add New User'}</h2>
-            <form onSubmit={editingUser ? handleEditUser : handleAddUser} className="two-column-form">
+            <form onSubmit={editingUser ? handleEditUser : handleAddUser}>
               <div className="form-group">
                 <label>First Name</label>
                 <input
@@ -241,7 +272,7 @@ const UserManagement = () => {
               <div className="form-group">
                 <label>Contact Number</label>
                 <input
-                  type="text"
+                  type="tel"
                   value={formData.contactNumber}
                   onChange={(e) => setFormData({...formData, contactNumber: e.target.value})}
                   required
@@ -255,9 +286,9 @@ const UserManagement = () => {
                   required
                 >
                   <option value="">Select Gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
               <div className="form-group">
@@ -319,6 +350,30 @@ const UserManagement = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>Confirm Delete</h2>
+            <p>Are you sure you want to delete this user?</p>
+            <div className="modal-buttons">
+              <button onClick={handleDeleteUser} className="delete-btn">
+                Delete
+              </button>
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setUserToDelete(null);
+                }}
+                className="cancel-btn"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -6,7 +6,7 @@ import { fetchArticles, createArticle, updateArticle, deleteArticle } from '../a
 
 const initialForm = {
   title: '',
-  content: '', // plain text, one paragraph per line
+  content: '',
   author: '',
   date: '',
   image: '',
@@ -28,7 +28,7 @@ const ArticleManagement = () => {
   const loadArticles = async () => {
     try {
       const { data } = await fetchArticles();
-      setArticles(data.articles || data); // support both { articles: [...] } and [...]
+      setArticles(data.articles || data); 
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch articles');
     }
@@ -98,6 +98,12 @@ const ArticleManagement = () => {
     }
   };
 
+  const truncateContent = (content) => {
+    if (!Array.isArray(content)) return '';
+    const text = content.map(p => p.text).join(' ');
+    return text.length > 150 ? text.substring(0, 150) + '...' : text;
+  };
+
   return (
     <div className="user-management">
       <div className="page-header">
@@ -124,10 +130,8 @@ const ArticleManagement = () => {
             {articles.map(article => (
               <tr key={article._id}>
                 <td>{article.title}</td>
-                <td style={{ maxWidth: 200, whiteSpace: 'pre-wrap', fontSize: '0.9em' }}>
-                  {Array.isArray(article.content)
-                    ? article.content.map((p, i) => <div key={i}>{p.text}</div>)
-                    : ''}
+                <td style={{ maxWidth: 300, whiteSpace: 'pre-wrap', fontSize: '0.9em' }}>
+                  {truncateContent(article.content)}
                 </td>
                 <td>{article.author}</td>
                 <td>{article.date}</td>
@@ -188,9 +192,9 @@ const ArticleManagement = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <h2>Confirm Delete</h2>
-            <p>Are you sure you want to delete the article <b>{articleToDelete?.title}</b>?</p>
+            <p>Are you sure you want to delete article <strong>{articleToDelete?.title}</strong>?</p>
             <div className="modal-buttons">
-              <button className="save-btn" onClick={handleDeleteArticle}>Delete</button>
+              <button className="delete-confirm-btn" onClick={handleDeleteArticle}>Delete</button>
               <button className="cancel-btn" onClick={() => { setShowDeleteModal(false); setArticleToDelete(null); }}>Cancel</button>
             </div>
           </div>

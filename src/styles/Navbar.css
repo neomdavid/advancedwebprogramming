@@ -24,6 +24,16 @@ ul {
   gap: 32px;
 }
 
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-image {
+  height: 40px;
+  width: auto;
+}
+
 .logo h1 {
   font-weight: 900;
   font-size: 29px;

@@ -3,9 +3,10 @@ main {
   justify-content: center;
   align-items: center;
   background-color: #1c1c1c;
-  height: 80.7vh;
+  height: 100vh;
   position: relative;
   overflow: hidden;
+  padding: 40px 0;
 }
 .card {
   display: flex;

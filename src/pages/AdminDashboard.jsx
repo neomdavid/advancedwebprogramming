@@ -1,327 +1,153 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import "../styles/AdminDashboard.css";
+import { Box, Grid, Paper, Typography, List, ListItem, ListItemText, ListItemAvatar, Avatar, Divider } from '@mui/material';
+import PeopleIcon from '@mui/icons-material/People';
+import ArticleIcon from '@mui/icons-material/Article';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import axios from 'axios';
+import { API_URL } from '../config/api';
 
 const AdminDashboard = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
-
-  // Form states
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    type: "viewer",
-    isActive: true
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalArticles: 0,
+    recentUsers: [],
+    recentArticles: []
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchUsers();
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch('http://localhost:5000/api/users/stats', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch dashboard data');
+        }
+
+        const data = await response.json();
+        setStats(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
   }, []);
 
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/api/users", {
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        }
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message);
-      setUsers(data.users);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="admin-dashboard">
+        <div className="dashboard-header">
+          <h1>Welcome, {user?.firstName || 'Admin'}</h1>
+        </div>
+        <div className="loading-message">Loading dashboard data...</div>
+      </div>
+    );
+  }
 
-  const handleAddUser = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch("http://localhost:5000/api/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        body: JSON.stringify(formData)
-      });
-      if (!response.ok) throw new Error("Failed to create user");
-      setShowAddModal(false);
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        password: "",
-        type: "viewer",
-        isActive: true
-      });
-      fetchUsers();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleEditUser = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch(`http://localhost:5000/api/users/${editingUser._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        body: JSON.stringify(formData)
-      });
-      if (!response.ok) throw new Error("Failed to update user");
-      setEditingUser(null);
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        password: "",
-        type: "viewer",
-        isActive: true
-      });
-      fetchUsers();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleDeleteUser = async (userId) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
-
-    try {
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        }
-      });
-      if (!response.ok) throw new Error("Failed to delete user");
-      fetchUsers(); // Refresh the list
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  if (loading) return <div className="loading">Loading...</div>;
-  if (error) return <div className="error">{error}</div>;
+  if (error) {
+    return (
+      <div className="admin-dashboard">
+        <div className="dashboard-header">
+          <h1>Welcome, {user?.firstName || 'Admin'}</h1>
+        </div>
+        <div className="error-message">Error: {error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-dashboard">
       <div className="dashboard-header">
-        <h1>Dashboard Overview</h1>
+        <h1>Welcome, {user?.firstName || 'Admin'}</h1>
       </div>
-      
-      <div className="dashboard-stats">
+
+      <div className="stats-overview">
         <div className="stat-card">
-          <div className="stat-icon">
-            <i className="fas fa-users"></i>
-          </div>
-          <div className="stat-info">
-            <h3>Total Users</h3>
-            <p>Loading...</p>
-          </div>
+          <h3>Total Users</h3>
+          <p>{stats.totalUsers}</p>
         </div>
-        
         <div className="stat-card">
-          <div className="stat-icon">
-            <i className="fas fa-newspaper"></i>
-          </div>
-          <div className="stat-info">
-            <h3>Total Articles</h3>
-            <p>Loading...</p>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">
-            <i className="fas fa-eye"></i>
-          </div>
-          <div className="stat-info">
-            <h3>Total Views</h3>
-            <p>Loading...</p>
-          </div>
+          <h3>Total Articles</h3>
+          <p>{stats.totalArticles}</p>
         </div>
       </div>
 
-      <div className="dashboard-recent">
-        <div className="recent-section">
+      <div className="dashboard-sections">
+        <div className="recent-users">
           <h2>Recent Users</h2>
-          <div className="recent-list">
-            <p>Loading recent users...</p>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.recentUsers?.map((user) => (
+                  <tr key={user._id}>
+                    <td>{`${user.firstName} ${user.lastName}`}</td>
+                    <td>{user.email}</td>
+                    <td>{user.type}</td>
+                    <td>
+                      <span className={`status ${user.isActive ? 'active' : 'inactive'}`}>
+                        {user.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-        
-        <div className="recent-section">
+
+        <div className="recent-articles">
           <h2>Recent Articles</h2>
-          <div className="recent-list">
-            <p>Loading recent articles...</p>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Author</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.recentArticles?.map((article) => (
+                  <tr key={article._id}>
+                    <td>{article.title}</td>
+                    <td>{article.author}</td>
+                    <td>{article.date}</td>
+                    <td>
+                      <span className={`status ${article.isActive ? 'active' : 'inactive'}`}>
+                        {article.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
-
-      <div className="dashboard-header">
-        <button className="add-user-btn" onClick={() => setShowAddModal(true)}>
-          <i className="fas fa-plus"></i> Add New User
-        </button>
-      </div>
-
-      <div className="users-table-container">
-        <table className="users-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user._id}>
-                <td>{user.firstName} {user.lastName}</td>
-                <td>{user.email}</td>
-                <td>
-                  <span className={`role-badge ${user.type}`}>
-                    {user.type}
-                  </span>
-                </td>
-                <td>
-                  <span className={`status-badge ${user.isActive ? 'active' : 'inactive'}`}>
-                    {user.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td>
-                  <div className="action-buttons">
-                    <button
-                      className="edit-btn"
-                      onClick={() => {
-                        setEditingUser(user);
-                        setFormData({
-                          firstName: user.firstName,
-                          lastName: user.lastName,
-                          email: user.email,
-                          type: user.type,
-                          isActive: user.isActive
-                        });
-                      }}
-                    >
-                      <i className="fas fa-edit"></i>
-                    </button>
-                    <button
-                      className="delete-btn"
-                      onClick={() => handleDeleteUser(user._id)}
-                    >
-                      <i className="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Add/Edit User Modal */}
-      {(showAddModal || editingUser) && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>{editingUser ? 'Edit User' : 'Add New User'}</h2>
-            <form onSubmit={editingUser ? handleEditUser : handleAddUser}>
-              <div className="form-group">
-                <label>First Name</label>
-                <input
-                  type="text"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Last Name</label>
-                <input
-                  type="text"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  required
-                />
-              </div>
-              {!editingUser && (
-                <div className="form-group">
-                  <label>Password</label>
-                  <input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    required
-                  />
-                </div>
-              )}
-              <div className="form-group">
-                <label>Role</label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => setFormData({...formData, type: e.target.value})}
-                >
-                  <option value="viewer">Viewer</option>
-                  <option value="editor">Editor</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Status</label>
-                <select
-                  value={formData.isActive}
-                  onChange={(e) => setFormData({...formData, isActive: e.target.value === 'true'})}
-                >
-                  <option value="true">Active</option>
-                  <option value="false">Inactive</option>
-                </select>
-              </div>
-              <div className="modal-buttons">
-                <button type="submit" className="save-btn">
-                  {editingUser ? 'Save Changes' : 'Add User'}
-                </button>
-                <button
-                  type="button"
-                  className="cancel-btn"
-                  onClick={() => {
-                    setShowAddModal(false);
-                    setEditingUser(null);
-                    setFormData({
-                      firstName: "",
-                      lastName: "",
-                      email: "",
-                      password: "",
-                      type: "viewer",
-                      isActive: true
-                    });
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

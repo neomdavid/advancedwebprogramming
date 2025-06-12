@@ -188,7 +188,7 @@
   display: flex;
   gap: 1rem;
   margin-top: 1.5rem;
-  background-color: ;
+
 }
 
 .save-btn,
@@ -249,4 +249,18 @@
   .two-column-modal .two-column-form {
     grid-template-columns: 1fr;
   }
+}
+
+.delete-confirm-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.delete-confirm-btn:hover {
+  background-color: #c82333;
 } 

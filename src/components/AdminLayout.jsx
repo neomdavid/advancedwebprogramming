@@ -1,23 +1,37 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useLocation, Link, Outlet } from 'react-router-dom';
 import { Drawer, List, ListItem, ListItemIcon, ListItemText, Box, Typography, Divider } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ArticleIcon from '@mui/icons-material/Article';
+import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-toastify';
 
 const drawerWidth = 240;
 
 const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const { user, logout } = useAuth();
   const firstName = user ? user.firstName : 'Admin';
   const role = user ? user.type : 'admin';
 
+  useEffect(() => {
+    if (location.state?.showToast) {
+      toast.success(location.state.message || `Welcome back, ${location.state.firstName}!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
+  }, [location]);
+
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    logout();
     navigate('/login');
   };
 
@@ -41,7 +55,6 @@ const AdminLayout = () => {
         open
       >
         <Box>
-           
           <Box sx={{ py: 3}}>
             <Typography variant="subtitle1" sx={{ fontWeight: 900 ,textAlign: 'center',fontSize: '2.5rem',marginTop:'-10px', paddingBottom:'8px'}}>
               ND
@@ -81,7 +94,6 @@ const AdminLayout = () => {
         </Box>
       </Drawer>
       <Outlet/>
-      
     </Box>
   );
 };

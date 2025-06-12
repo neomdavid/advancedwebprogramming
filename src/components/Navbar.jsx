@@ -31,9 +31,9 @@ const Navbar = () => {
     <nav className="">
       <div className="left-section">
         <div className="logo">
-          <h1>
-            N<span>D</span>
-          </h1>
+          <Link to="/">
+            <img src="/ND_logo.svg" alt="ND Logo" className="logo-image" />
+          </Link>
         </div>
         <ul>
           <li>
@@ -78,11 +78,27 @@ const Navbar = () => {
             </button>
           </div>
         ) : (
-          <Link to="/login">
-            <Button>
-              <p>Login</p>
-            </Button>
-          </Link>
+          <>
+            {pathname === '/login' ? (
+              <Link to="/register">
+                <Button>
+                  <p>Register</p>
+                </Button>
+              </Link>
+            ) : pathname === '/register' ? (
+              <Link to="/login">
+                <Button>
+                  <p>Login</p>
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/login">
+                <Button>
+                  <p>Login</p>
+                </Button>
+              </Link>
+            )}
+          </>
         )}
       </div>
     </nav>
