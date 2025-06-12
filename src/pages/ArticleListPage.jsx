@@ -12,9 +12,18 @@ const ArticleListPage = () => {
     const getArticles = async () => {
       try {
         setLoading(true);
+        console.log("Fetching articles from:", import.meta.env.VITE_PROD_API_URL || import.meta.env.VITE_DEV_API_URL);
         const res = await fetchArticles();
-        setArticles(res.data.articles);
+        console.log("Articles response:", res);
+        console.log("Articles data:", res.data);
+        if (res.data && res.data.articles) {
+          setArticles(res.data.articles);
+        } else {
+          console.error("No articles found in response:", res.data);
+          setError("No articles available");
+        }
       } catch (err) {
+        console.error("Error fetching articles:", err);
         setError("Failed to load articles");
       } finally {
         setLoading(false);
