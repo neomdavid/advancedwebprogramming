@@ -3,9 +3,11 @@ import "../styles/LoginPage.css";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { createUser } from "../api/userApi";
 import { toast } from 'react-toastify';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const RegistrationPage = () => {
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -44,7 +46,6 @@ const RegistrationPage = () => {
 
   const handleNext = (e) => {
     e.preventDefault();
-    // Validate first step
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.username) {
       toast.error("Please fill in all required fields", {
         position: "top-right",
@@ -57,6 +58,7 @@ const RegistrationPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     if (formData.password !== confirmPassword) {
       toast.error("Passwords do not match!", {
@@ -67,13 +69,12 @@ const RegistrationPage = () => {
         pauseOnHover: true,
         draggable: true,
       });
+      setLoading(false);
       return;
     }
 
     try {
       const { data } = await createUser(formData);
-      
-      // Navigate to login page with success message
       navigate("/login", { 
         state: { 
           showToast: true,
@@ -90,6 +91,8 @@ const RegistrationPage = () => {
         pauseOnHover: true,
         draggable: true,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -105,6 +108,7 @@ const RegistrationPage = () => {
         onChange={handleChange}
         className="input"
         autoComplete="given-name"
+        disabled={loading}
       />
       <input
         type="text"
@@ -115,6 +119,7 @@ const RegistrationPage = () => {
         onChange={handleChange}
         className="input"
         autoComplete="family-name"
+        disabled={loading}
       />
       <input
         type="text"
@@ -125,6 +130,7 @@ const RegistrationPage = () => {
         onChange={handleChange}
         className="input"
         autoComplete="username"
+        disabled={loading}
       />
       <input
         type="email"
@@ -135,8 +141,14 @@ const RegistrationPage = () => {
         onChange={handleChange}
         className="input"
         autoComplete="email"
+        disabled={loading}
       />
-      <button type="button" onClick={handleNext} className="login-button">
+      <button 
+        type="button" 
+        onClick={handleNext} 
+        className="login-button"
+        disabled={loading}
+      >
         Next
       </button>
     </>
@@ -153,6 +165,7 @@ const RegistrationPage = () => {
         value={formData.age}
         onChange={handleChange}
         className="input"
+        disabled={loading}
       />
       <select
         name="gender"
@@ -160,6 +173,7 @@ const RegistrationPage = () => {
         value={formData.gender}
         onChange={handleChange}
         className="input"
+        disabled={loading}
       >
         <option value="">Select Gender</option>
         <option value="Male">Male</option>
@@ -175,6 +189,7 @@ const RegistrationPage = () => {
         onChange={handleChange}
         className="input"
         autoComplete="tel"
+        disabled={loading}
       />
       <input
         type="text"
@@ -185,6 +200,7 @@ const RegistrationPage = () => {
         onChange={handleChange}
         className="input"
         autoComplete="street-address"
+        disabled={loading}
       />
       <select
         name="type"
@@ -192,6 +208,7 @@ const RegistrationPage = () => {
         value={formData.type}
         onChange={handleChange}
         className="input"
+        disabled={loading}
       >
         <option value="viewer">Viewer</option>
         <option value="editor">Editor</option>
@@ -206,6 +223,7 @@ const RegistrationPage = () => {
         onChange={handleChange}
         className="input"
         autoComplete="new-password"
+        disabled={loading}
       />
       <input
         type="password"
@@ -215,15 +233,19 @@ const RegistrationPage = () => {
         onChange={(e) => setConfirmPassword(e.target.value)}
         className="input"
         autoComplete="new-password"
+        disabled={loading}
       />
-      <div className="button-group">
-        <button type="button" onClick={() => setStep(1)} className="login-button secondary">
-          Back
-        </button>
-        <button type="submit" className="login-button">
-          Register
-        </button>
-      </div>
+      <button 
+        type="submit" 
+        className="login-button"
+        disabled={loading}
+      >
+        {loading ? (
+          <CircularProgress size={24} color="inherit" />
+        ) : (
+          'Register'
+        )}
+      </button>
     </>
   );
 
@@ -237,10 +259,11 @@ const RegistrationPage = () => {
           <div className="card-bg-2">
             <p>ND</p>
           </div>
-          <p>Please fill in your details</p>
+          <p>Please enter your details</p>
+          <h2>Registration</h2>
           {step === 1 ? renderStep1() : renderStep2()}
           <p className="signup-text">
-            Already have an account? <Link to={"/login"}>Log in</Link>
+            Already have an account? <Link to={"/login"}>Login</Link>
           </p>
         </div>
       </main>

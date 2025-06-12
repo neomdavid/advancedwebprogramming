@@ -4,11 +4,13 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { loginUser } from "../api/userApi";
 import { toast } from 'react-toastify';
 import { useAuth } from '../contexts/AuthContext';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
@@ -28,25 +30,20 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login attempt started");
+    setLoading(true);
+    setError("");
 
     try {
-      console.log("Calling loginUser API with:", { email, password });
       const { data } = await loginUser({ email, password });
-      console.log("Login API response:", data);
-
-      // Use the login function from AuthContext
       login({
         firstName: data.firstName,
         type: data.type,
         email: email
       }, data.token);
 
-      // Navigate based on user type
       switch (data.type) {
         case "admin":
         case "editor":
-          console.log("Redirecting to admin dashboard");
           navigate("/admin", { 
             state: { 
               showToast: true,
@@ -56,7 +53,6 @@ const LoginPage = () => {
           });
           break;
         case "viewer":
-          console.log("Redirecting to home page");
           navigate("/", { 
             state: { 
               showToast: true,
@@ -66,7 +62,6 @@ const LoginPage = () => {
           });
           break;
         default:
-          console.log("Redirecting to welcome page");
           navigate("/welcome", { 
             state: { 
               showToast: true,
@@ -76,8 +71,6 @@ const LoginPage = () => {
           });
       }
     } catch (err) {
-      console.error("Login error:", err);
-      console.log("Attempting to show error toast");
       toast.error(err.response?.data?.message || err.message || "Login failed", {
         position: "top-right",
         autoClose: 5000,
@@ -86,7 +79,8 @@ const LoginPage = () => {
         pauseOnHover: true,
         draggable: true,
       });
-      console.log("Error toast should be shown");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -111,6 +105,7 @@ const LoginPage = () => {
             onChange={(e) => setEmail(e.target.value)}
             className="input"
             autoComplete="email"
+            disabled={loading}
           />
           <input
             type="password"
@@ -120,9 +115,18 @@ const LoginPage = () => {
             onChange={(e) => setPassword(e.target.value)}
             className="input"
             autoComplete="current-password"
+            disabled={loading}
           />
-          <button type="submit" className="login-button">
-            Login
+          <button 
+            type="submit" 
+            className="login-button"
+            disabled={loading}
+          >
+            {loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              'Login'
+            )}
           </button>
           <p className="signup-text">
             Don't have an account? <Link to={"/register"}>Sign up</Link>
