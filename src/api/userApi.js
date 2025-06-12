@@ -6,6 +6,7 @@ const HOST = import.meta.env.MODE === 'production'
 
 const API = axios.create({
   baseURL: `${HOST}/users`,
+  withCredentials: true
 });
 
 // Add request interceptor to include auth token
@@ -25,6 +26,10 @@ API.interceptors.response.use(
       // Handle unauthorized access
       localStorage.removeItem('token');
       window.location.href = '/login';
+    } else if (error.message === 'Network Error') {
+      // Handle CORS or network errors
+      console.error('Network Error - This might be a CORS issue. Please check your backend configuration.');
+      throw new Error('Unable to connect to the server. Please try again later.');
     }
     return Promise.reject(error);
   }
@@ -46,7 +51,17 @@ export const deleteUser = (id) => API.delete(`/${id}`);
 export const loginUser = (credentials) => API.post('/login', credentials);
 
 // Fetch user stats
-export const fetchUserStats = () => API.get('/stats');
+export const fetchUserStats = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+  return API.get('/stats', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+};
 
 // Get user profile
 export const getUserProfile = () => API.get('/profile');

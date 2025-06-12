@@ -8,45 +8,41 @@ import ArticleIcon from '@mui/icons-material/Article';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import axios from 'axios';
 import { API_URL } from '../config/api';
+import { fetchUserStats } from '../api/userApi';
 
 const AdminDashboard = () => {
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalArticles: 0,
-    recentUsers: [],
-    recentArticles: []
-  });
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const loadStats = async () => {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch('http://localhost:5000/api/users/stats', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch dashboard data');
-        }
-
-        const data = await response.json();
-        setStats(data);
+        const response = await fetchUserStats();
+        setStats(response.data);
       } catch (err) {
-        setError(err.message);
+        console.error('Error loading stats:', err);
+        if (err.message === 'No authentication token found') {
+          navigate('/login');
+        } else {
+          setError(err.message || 'Failed to load statistics');
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStats();
-  }, []);
+    loadStats();
+  }, [user, navigate]);
 
   if (loading) {
     return (
